@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-
 # Senior Frontend Engineer (AI-Agent Interfaces) — Technical Assessment
 
 Welcome! This practical exercise is designed to simulate the exact architectural challenges you will own in your first 60 days as our first Senior Frontend Engineer: **building and owning a resilient, shared React/TypeScript agent-UI layer** across multiple products, collaborating on event contracts with our Python/LangGraph backend engineers, and raising the frontend engineering bar across the team.
