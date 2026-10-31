@@ -106,11 +106,3 @@ When our Python backend emits a `langgraph_interrupt` event (Scenario: **`approv
 ### Task 3: Asynchronous PR Review (`reviews/PR_104_AgentSummaryCard.md`) (~25 mins)
 
 As our first Senior Frontend Engineer, you will review frontend code written by junior/mid-level engineers and backend colleagues. Open `reviews/PR_104_AgentSummaryCard.md`, which contains a 75-line component diff submitted by a teammate, and write **5 to 7 inline review comments** prioritized by severity (security, state bugs, UX honesty, accessibility, and TypeScript safety).
-
->>>>>>> origin/master
->>>>>>>
->>>>>>
->>>>>
->>>>
->>>
->>
