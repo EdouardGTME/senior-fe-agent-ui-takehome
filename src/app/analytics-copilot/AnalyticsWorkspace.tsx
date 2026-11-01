@@ -66,7 +66,8 @@ export const AnalyticsWorkspace: React.FC = () => {
     if (found) setPromptInput(found.defaultPrompt);
   };
 
-  const isBusy = status === 'streaming' || status === 'resuming';
+  const isBusy =
+    status === 'streaming' || status === 'resuming' || status === 'awaiting_approval';
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
