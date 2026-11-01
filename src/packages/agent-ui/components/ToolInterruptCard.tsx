@@ -15,8 +15,7 @@ interface ToolInterruptCardProps {
  * TASK 1: Human-in-the-Loop Interrupt Card
  *
  * Requirements to complete / fix:
- * 1. Ensure inline edits made by the user (e.g. changing `proposed_budget_eur`) are NOT wiped out
- *    when background `stream_heartbeat` events arrive while the run is paused.
+ * 1. Inline edits made by the user (e.g. changing `proposed_budget_eur`) must survive while the run is paused.
  * 2. Prevent accidental double-submissions while `interrupt.status === 'submitting'`.
  * 3. Support "Approve", "Edit & Approve" (with validation), and "Reject" (with optional reason note),
  *    and show a clear audit summary once resolved.

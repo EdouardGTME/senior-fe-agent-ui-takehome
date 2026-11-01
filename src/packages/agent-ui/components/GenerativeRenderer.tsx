@@ -10,12 +10,6 @@ interface GenerativeRendererProps {
 /**
  * TASK 2: Controlled Generative UI Registry & Non-Deterministic Fallback
  *
- * Current Problem:
- * Below, the starter code blindly casts `payload as AnalyticsReportPayload` without
- * runtime schema validation (e.g. Zod) or an Error Boundary.
- * When you run the `malformed` scenario, the LLM returns corrupt types (null title,
- * string summary, string inside `rows`), which crashes the entire React application!
- *
  * Your Goal:
  * 1. Create a clean component registry pattern and validate incoming payloads at runtime (e.g., with `zod`).
  * 2. If validation fails—or if a child visualization throws—render a truthful, user-friendly
@@ -29,7 +23,6 @@ export const GenerativeRenderer: React.FC<GenerativeRendererProps> = ({ payload 
   const record = payload as Record<string, any>;
 
   if (record.type === 'analytics_report') {
-    // UNSAFE CAST: This crashes on Scenario `malformed`!
     const report = record as AnalyticsReportPayload;
 
     return (

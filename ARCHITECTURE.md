@@ -27,7 +27,7 @@
 ---
 
 ## 4. Scope Cuts & Production Next Steps
-*What did you intentionally simplify or defer to stay within the 3-hour timebox, and what are the top two engineering priorities you would tackle next before shipping this to production clients handling confidential financial/HR data?*
+*What did you intentionally simplify or defer to stay within the 2.5 to 3.5 hour timebox, and what are the top two engineering priorities you would tackle next before shipping this to production clients handling confidential financial/HR data?*
 
 - **Your Response:**
   *(Write here)*

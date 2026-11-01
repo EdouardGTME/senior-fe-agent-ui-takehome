@@ -25,9 +25,6 @@ export function useAgentStream(options: UseAgentStreamOptions = {}) {
   const [lastScenario, setLastScenario] = useState<ScenarioType>('standard');
   const [lastPrompt, setLastPrompt] = useState<string>('');
 
-  // NOTE FOR CANDIDATE (TASK 1):
-  // Inspect how AbortController, stream cancellation, and state updates on
-  // `stream_heartbeat` and cursor reconnection are handled below.
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const parseSseStream = async (
@@ -168,16 +165,11 @@ export function useAgentStream(options: UseAgentStreamOptions = {}) {
       }
 
       case 'stream_heartbeat': {
-        // BUG TRAP #1:
-        // On every heartbeat tick, we increment heartbeatCount AND accidentally
-        // clone/re-assign the `interrupt` object with a new synthetic reference,
-        // which causes naive child consumers to reset their local form state!
         setHeartbeatCount(data.heartbeat_seq || 0);
         setInterrupt((prev) =>
           prev
             ? {
                 ...prev,
-                // BUG: Mutating interruptId on heartbeat breaks component identity!
                 interruptId: `${prev.interruptId}_hb_${data.heartbeat_seq}`,
               }
             : null
@@ -229,8 +221,6 @@ export function useAgentStream(options: UseAgentStreamOptions = {}) {
             prompt,
             last_event_id: resumeFromEventId ?? null,
           }),
-          // BUG TRAP #2:
-          // Notice that `abortControllerRef.current` is never created or passed as `signal`!
         });
 
         if (!response.ok) {
@@ -254,9 +244,6 @@ export function useAgentStream(options: UseAgentStreamOptions = {}) {
   );
 
   const cancelRun = useCallback(() => {
-    // BUG TRAP #2:
-    // This sets status to 'cancelled', but does NOT abort the active fetch stream!
-    // Tokens from the still-open response will continue arriving and mutating state.
     setStatus('cancelled');
   }, []);
 

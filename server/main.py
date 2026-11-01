@@ -16,8 +16,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# In-memory store for paused runs waiting on human-in-the-loop interrupts
-# and for cursor-based reconnection in the `chaos` scenario.
+# In-memory state for paused runs and chaos-run progress.
 PAUSED_RUNS: Dict[str, Dict[str, Any]] = {}
 CHAOS_RUN_PROGRESS: Dict[str, int] = {}
 
@@ -149,7 +148,7 @@ async def stream_run(req: StreamRequest):
             yield sse_event("run_completed", {"run_id": run_id, "status": "success"}, seq)
 
         # =====================================================================
-        # SCENARIO 2: APPROVAL (LangGraph Interrupt + Background Heartbeats)
+        # SCENARIO 2: APPROVAL (LangGraph Interrupt)
         # =====================================================================
         elif req.scenario == "approval":
             words = (
@@ -194,9 +193,7 @@ async def stream_run(req: StreamRequest):
             }, seq)
             seq += 1
 
-            # Emit periodic stream_heartbeat events while waiting for human approval.
-            # NOTE: In the starter frontend, these heartbeats trigger state updates that
-            # expose the ephemeral edit-state wipe bug if the Interrupt Card isn't properly isolated!
+            # Keep the connection alive while waiting for the decision.
             for hb in range(1, 15):
                 await asyncio.sleep(2.0)
                 if run_id not in PAUSED_RUNS:
@@ -209,7 +206,7 @@ async def stream_run(req: StreamRequest):
                 seq += 1
 
         # =====================================================================
-        # SCENARIO 3: CHAOS (Stall + Mid-Stream Disconnect + Cursor Resumption)
+        # SCENARIO 3: CHAOS
         # =====================================================================
         elif req.scenario == "chaos":
             intro_words = (
@@ -244,11 +241,11 @@ async def stream_run(req: StreamRequest):
                     "total_steps": 3,
                     "status_text": "Scanning Kafka attribution partitions (long-running step)..."
                 }, seq)
-                # Intentional 2.5s stall simulating heavy backend step
+                # Simulated slow backend step
                 await asyncio.sleep(2.5)
             seq += 1
 
-            # If client has NOT passed `last_event_id` to recover yet, drop the stream here!
+            # First connection: drop the stream here.
             if req.last_event_id is None:
                 yield sse_event("run_error", {
                     "run_id": run_id,
@@ -260,7 +257,7 @@ async def stream_run(req: StreamRequest):
                 }, seq)
                 return
 
-            # If client reconnected with `last_event_id`, resume seamlessly from step 2!
+            # Reconnection: continue from here.
             if seq > start_after:
                 yield sse_event("tool_call_progress", {
                     "run_id": run_id,
@@ -343,7 +340,7 @@ async def stream_run(req: StreamRequest):
             seq += 1
             await asyncio.sleep(0.4)
 
-            # Intentionally corrupt payload: invalid types, string inside rows array, null title
+            # Corrupt payload.
             yield sse_event("tool_call_result", {
                 "run_id": run_id,
                 "tool_call_id": call_id,

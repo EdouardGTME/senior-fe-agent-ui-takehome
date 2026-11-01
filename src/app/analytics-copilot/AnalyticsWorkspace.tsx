@@ -22,21 +22,21 @@ const SCENARIOS: {
   {
     id: 'approval',
     label: '2. LangGraph HITL Interrupt',
-    badge: 'Task 1 Bug',
+    badge: 'Task 1',
     defaultPrompt: 'Reallocate Q4 DACH search budget cap from €45k to €75k.',
-    description: 'Pauses on a high-risk tool interrupt while emitting SSE heartbeats every 2s.',
+    description: 'Pauses on a high-risk tool call and waits for a human decision.',
   },
   {
     id: 'chaos',
     label: '3. Chaos Stream (Stall + Drop)',
-    badge: 'Task 1 Resilience',
+    badge: 'Task 1',
     defaultPrompt: 'Run 48-hour real-time attribution anomaly audit across Kafka partitions.',
-    description: 'Simulates a 2.5s step stall followed by a mid-stream connection drop requiring cursor recovery.',
+    description: 'Simulates a slow tool step followed by a mid-stream connection drop.',
   },
   {
     id: 'malformed',
     label: '4. Malformed LLM Output',
-    badge: 'Task 2 GenUI',
+    badge: 'Task 2',
     defaultPrompt: 'Generate experimental Q3 regional anomaly table.',
     description: 'Emits corrupted schema types inside tool_call_result to test Generative UI safety.',
   },
@@ -205,9 +205,6 @@ export const AnalyticsWorkspace: React.FC = () => {
           {/* Human-in-the-loop Interrupt Card */}
           {interrupt && (
             <ToolInterruptCard
-              // BUG TRAP #1: Keying by `interrupt.interruptId` when `interruptId` gets mutated
-              // on every heartbeat causes React to unmount & remount `<ToolInterruptCard />`,
-              // wiping out the user's unsaved input!
               key={interrupt.interruptId}
               interrupt={interrupt}
               onDecision={submitInterruptDecision}
