@@ -21,7 +21,11 @@ function createControllableSseStream() {
     stream,
     emit(eventType: string, data: Record<string, unknown>) {
       const frame = `event: ${eventType}\ndata: ${JSON.stringify(data)}\n\n`;
-      controllerRef?.enqueue(encoder.encode(frame));
+      try {
+        controllerRef?.enqueue(encoder.encode(frame));
+      } catch {
+        // The consumer already cancelled this stream.
+      }
     },
     close() {
       controllerRef?.close();
@@ -34,7 +38,7 @@ describe('Shared Agent-UI Layer — Behavioral Suite', () => {
     vi.restoreAllMocks();
   });
 
-  it('FAILING BUG #1: preserves unsaved inline user edits in ToolInterruptCard across background stream_heartbeat events', async () => {
+  it('keeps unsaved edits in ToolInterruptCard while the run waits for approval', async () => {
     const sse = createControllableSseStream();
 
     vi.spyOn(globalThis, 'fetch').mockImplementation(async () => {
@@ -83,17 +87,18 @@ describe('Shared Agent-UI Layer — Behavioral Suite', () => {
       expect(screen.getByTestId('heartbeat-counter')).toHaveTextContent('HB #1');
     });
 
-    // CRITICAL ASSERTION: The user's in-progress edit ('62500') MUST NOT be wiped out by the heartbeat!
     const inputAfterHeartbeat = screen.getByTestId('proposed-budget-input') as HTMLInputElement;
     expect(inputAfterHeartbeat.value).toBe('62500');
   });
 
-  it('FAILING BUG #2: aborts the underlying fetch request and ignores trailing tokens when Cancel Stream is clicked', async () => {
-    const sse = createControllableSseStream();
-    let capturedSignal: AbortSignal | undefined;
+  it('does not show output from a cancelled run, even after a new run has started', async () => {
+    const oldSse = createControllableSseStream();
+    const newSse = createControllableSseStream();
+    const streams = [oldSse, newSse];
+    let call = 0;
 
-    vi.spyOn(globalThis, 'fetch').mockImplementation(async (_input, init) => {
-      capturedSignal = init?.signal ?? undefined;
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async () => {
+      const sse = streams[call++];
       return new Response(sse.stream, {
         status: 200,
         headers: { 'Content-Type': 'text/event-stream' },
@@ -103,23 +108,41 @@ describe('Shared Agent-UI Layer — Behavioral Suite', () => {
     render(<AnalyticsWorkspace />);
     await userEvent.click(screen.getByTestId('start-run-btn'));
 
-    sse.emit('run_started', { run_id: 'run_cancel_test', thread_id: 't1', scenario: 'standard' });
-    sse.emit('message_delta', {
-      run_id: 'run_cancel_test',
-      message_id: 'msg_1',
-      delta: 'Initial partial output. ',
+    oldSse.emit('run_started', { run_id: 'run_old', thread_id: 't1', scenario: 'standard' });
+    oldSse.emit('message_delta', {
+      run_id: 'run_old',
+      message_id: 'msg_old_1',
+      delta: 'Old run output. ',
     });
 
     await waitFor(() => {
-      expect(screen.getByTestId('message-assistant')).toHaveTextContent('Initial partial output.');
+      expect(screen.getByText(/Old run output\./)).toBeInTheDocument();
     });
 
-    // Click Cancel Stream
-    const cancelBtn = screen.getByTestId('cancel-run-btn');
-    await userEvent.click(cancelBtn);
+    // Cancel, then immediately start a second run
+    await userEvent.click(screen.getByTestId('cancel-run-btn'));
+    await userEvent.click(await screen.findByTestId('start-run-btn'));
 
-    // 1. Verify an AbortSignal was passed to fetch and is now aborted
-    expect(capturedSignal).toBeDefined();
-    expect(capturedSignal?.aborted).toBe(true);
+    newSse.emit('run_started', { run_id: 'run_new', thread_id: 't1', scenario: 'standard' });
+    newSse.emit('message_delta', {
+      run_id: 'run_new',
+      message_id: 'msg_new_1',
+      delta: 'New run output.',
+    });
+
+    // The cancelled run keeps sending after the new run has begun
+    oldSse.emit('message_delta', {
+      run_id: 'run_old',
+      message_id: 'msg_old_2',
+      delta: 'STALE TOKEN FROM CANCELLED RUN',
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText(/New run output\./)).toBeInTheDocument();
+    });
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    expect(screen.queryByText(/STALE TOKEN FROM CANCELLED RUN/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Old run output\./)).not.toBeInTheDocument();
   });
 });

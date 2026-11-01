@@ -13,6 +13,7 @@ Rather than asking you to build a boilerplate CRUD app from scratch, we have pro
 * **Unpaid:** We know that is a real cost to you. It is a company constraint, not a preference, and we have kept the scope small because of it.
 * **Clarifying questions:** Ask before you start. Email Edouard directly. Asking is a positive signal, not a negative one.
 * **Submission:** Zip your whole project, including `ARCHITECTURE.md`, `AI_WORKFLOW.md` and your PR review, and name the file with your name, e.g. `john-doe-takehome.zip`. Email it to e.germain@house-of-communication.com.
+* **Confidentiality:** These materials are for this assessment only. Please do not fork them, make them public or share them. See `LICENSE`.
 * **AI Tooling Policy:** You are welcome to use AI coding assistants (Cursor, Claude Code, Copilot, etc.) just as you would in daily production work. Please complete `AI_WORKFLOW.md` briefly noting how you used AI and what you manually architected or corrected. Be prepared to modify and defend every line of your code live during our 45-minute review call. "The model wrote it that way" is not an answer we can work with.
 
 ---
@@ -58,18 +59,18 @@ We have structured the frontend to reflect the separation between the **shared c
 
 ```text
 ├── server/
-│   ├── main.py                        # FastAPI SSE LangGraph simulator (Clean & Chaos modes)
+│   ├── main.py                        # FastAPI SSE LangGraph simulator (standard, approval, chaos and malformed scenarios)
 │   └── requirements.txt
 ├── src/
 │   ├── packages/agent-ui/             # <-- SHARED AGENT-UI LAYER (Your primary domain)
 │   │   ├── types.ts                   # Shared SSE event & component contracts
-│   │   ├── useAgentStream.ts          # Core SSE streaming & HITL resume hook (HAS BUGS)
+│   │   ├── useAgentStream.ts          # Core SSE streaming & HITL resume hook
 │   │   ├── components/
 │   │   │   ├── ToolCallCard.tsx       # Reference component (Read-only tool lifecycle)
-│   │   │   ├── ToolInterruptCard.tsx  # Human-in-the-loop approval/edit card (NEEDS WORK)
+│   │   │   ├── ToolInterruptCard.tsx  # Human-in-the-loop approval/edit card
 │   │   │   └── GenerativeRenderer.tsx # Controlled Generative UI registry (TASK 2)
 │   │   └── __tests__/
-│   │       └── agent-ui.test.tsx      # Vitest behavioral suite (2 failing tests to fix)
+│   │       └── agent-ui.test.tsx      # Vitest behavioral suite (2 failing tests)
 │   └── app/analytics-copilot/         # <-- CONSUMING PRODUCT #1
 │       ├── AnalyticsWorkspace.tsx     # Demo host app with Scenario Selector
 │       └── widgets/                   # Pre-styled presentation primitives
@@ -95,7 +96,7 @@ When our Python backend emits a `langgraph_interrupt` event (Scenario: **`approv
 2. **Output from a cancelled run shows up in the next run (Failing Test #2):** Cancel a run and immediately start a new one, and output from the cancelled run can still appear. Find out why and fix it, and make sure the run status can never represent an invalid state.
 3. **Resilient Chaos Recovery & Double-Submit Protection:**
    * In `<ToolInterruptCard />`, extrapolate the design tokens and UX patterns from `<ToolCallCard />` to support **Approve**, **Edit & Approve**, and **Reject (with reason)**—ensuring keyboard accessibility, valid JSON/field checking, and protection against accidental double-submissions while `/resume` is in flight.
-   * Under Scenario **`chaos`**, the server injects a 3.5-second tool stall followed by a mid-stream transient disconnect (`STREAM_INTERRUPTED_RETRYABLE`). Ensure the UI preserves all partial output streamed prior to the error, tells the user the truth about the state, and provides a working **Reconnect / Resume** flow that does not duplicate previously streamed tokens.
+   * Under Scenario **`chaos`**, the server injects a 2.5-second tool stall followed by a mid-stream transient disconnect (`STREAM_INTERRUPTED_RETRYABLE`). Ensure the UI preserves all partial output streamed prior to the error, tells the user the truth about the state, and provides a working **Reconnect / Resume** flow that does not duplicate previously streamed tokens.
 
 ### Task 2: Controlled Generative UI Registry & Contract Proposal (~60 mins)
 
@@ -139,4 +140,3 @@ A smaller, correct, well-explained solution scores above a larger one with loose
 ## What happens next
 
 If we move forward, we will schedule a **45-minute remote review call** where you walk us through the solution and we dig into the decisions. That conversation carries more weight than the code itself. Expect us to push on your state model, on how you handled the chaos and malformed scenarios, and on your PR review.
-

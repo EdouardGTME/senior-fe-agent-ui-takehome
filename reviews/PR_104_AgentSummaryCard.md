@@ -94,3 +94,11 @@ export const AgentSummaryCard = (props: any) => {
 ### 5. [Priority / Line(s)] — Title
 - **Issue:** 
 - **Recommendation:** 
+
+### 6. [Priority / Line(s)] — Title (optional)
+- **Issue:** 
+- **Recommendation:** 
+
+### 7. [Priority / Line(s)] — Title (optional)
+- **Issue:** 
+- **Recommendation:** 
