@@ -48,7 +48,7 @@ To run the automated behavioral test suite (Vitest):
 npm test
 ```
 
-> **Note:** When you first run `npm test`, **2 tests will fail**. These failing tests pin the exact state-identity and stream-lifecycle bugs you need to solve in **Task 1**.
+> **Note:** When you first run `npm test`, **2 tests will fail**. These failing tests pin two of the defects you need to solve in **Task 1**.
 
 ---
 
@@ -91,11 +91,11 @@ Inspect `src/packages/agent-ui/useAgentStream.ts` and `src/packages/agent-ui/com
 
 When our Python backend emits a `langgraph_interrupt` event (Scenario: **`approval`**) or runs under adversarial network conditions (Scenario: **`chaos`**), the starter implementation exhibits three production defects:
 
-1. **Ephemeral Edit State Wiped on Stream Heartbeats (Failing Test #1):** While an agent run is paused waiting for Human-in-the-Loop (HITL) approval, the SSE stream continues emitting `stream_heartbeat` events every 2 seconds to keep the proxy connection alive. Currently, every incoming heartbeat causes the message list / interrupt card to lose the user's unsaved inline parameter edits inside `<ToolInterruptCard />`. Refactor the state boundary and component identity so in-flight user edits are keyed safely by `interrupt_id` and survive background stream ticks.
-2. **Zombie Stream & Race Condition on Cancel / Retry (Failing Test #2):** Clicking **Cancel** during an active run sets a UI boolean flag but fails to cleanly abort the underlying `fetch` SSE stream, allowing tokens from a cancelled run to interleave if the user immediately triggers a new run. Fix the `AbortController` lifecycle and model the run status cleanly so invalid overlapping states cannot occur.
+1. **Lost edits while waiting for approval (Failing Test #1):** While an agent run is paused waiting for Human-in-the-Loop (HITL) approval, the user can edit the tool call's parameters inside `<ToolInterruptCard />`. Currently those unsaved edits disappear while the run is still waiting. Find out why and fix it.
+2. **Output from a cancelled run shows up in the next run (Failing Test #2):** Cancel a run and immediately start a new one, and output from the cancelled run can still appear. Find out why and fix it, and make sure the run status can never represent an invalid state.
 3. **Resilient Chaos Recovery & Double-Submit Protection:**
    * In `<ToolInterruptCard />`, extrapolate the design tokens and UX patterns from `<ToolCallCard />` to support **Approve**, **Edit & Approve**, and **Reject (with reason)**—ensuring keyboard accessibility, valid JSON/field checking, and protection against accidental double-submissions while `/resume` is in flight.
-   * Under Scenario **`chaos`**, the server injects a 3.5-second tool stall followed by a mid-stream transient disconnect (`STREAM_INTERRUPTED_RETRYABLE`). Ensure the UI preserves all partial output streamed prior to the error, tells the user the truth about the state, and provides a working **Reconnect / Resume** flow (passing `last_event_id` to `/api/runs/stream` so previously streamed tokens are not duplicated).
+   * Under Scenario **`chaos`**, the server injects a 3.5-second tool stall followed by a mid-stream transient disconnect (`STREAM_INTERRUPTED_RETRYABLE`). Ensure the UI preserves all partial output streamed prior to the error, tells the user the truth about the state, and provides a working **Reconnect / Resume** flow that does not duplicate previously streamed tokens.
 
 ### Task 2: Controlled Generative UI Registry & Contract Proposal (~60 mins)
 
@@ -139,3 +139,4 @@ A smaller, correct, well-explained solution scores above a larger one with loose
 ## What happens next
 
 If we move forward, we will schedule a **45-minute remote review call** where you walk us through the solution and we dig into the decisions. That conversation carries more weight than the code itself. Expect us to push on your state model, on how you handled the chaos and malformed scenarios, and on your PR review.
+
