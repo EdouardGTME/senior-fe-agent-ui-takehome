@@ -9,8 +9,11 @@ Rather than asking you to build a boilerplate CRUD app from scratch, we have pro
 ## Timebox & Submission Guidelines
 
 * **Deadline:** Tuesday at 23:59 CET.
-* **Target Effort:** **2.5 to 3.5 hours** of focused engineering. Please **do not** spend 10+ hours polishing CSS or building unrequested features. We care deeply about state machines, streaming lifecycle safety, component API boundaries, and honest UX states.
-* **AI Tooling Policy:** You are welcome to use AI coding assistants (Cursor, Claude Code, Copilot, etc.) just as you would in daily production work. Please complete `AI_WORKFLOW.md` briefly noting how you used AI and what you manually architected or corrected. Be prepared to modify and defend every line of your code live during our 45-minute review call.
+* **Target Effort:** **2.5 to 3.5 hours** of focused engineering. Please **do not** spend 10+ hours polishing CSS or building unrequested features. We care deeply about state machines, streaming lifecycle safety, component API boundaries, and honest UX states. If you run out of time, stop and write down what you would have done next. We will not penalise an unfinished submission that says clearly what is missing and why.
+* **Unpaid:** We know that is a real cost to you. It is a company constraint, not a preference, and we have kept the scope small because of it.
+* **Clarifying questions:** Ask before you start. Email Edouard directly. Asking is a positive signal, not a negative one.
+* **Submission:** Zip your whole project, including `ARCHITECTURE.md`, `AI_WORKFLOW.md` and your PR review, and name the file with your name, e.g. `john-doe-takehome.zip`. Email it to e.germain@house-of-communication.com.
+* **AI Tooling Policy:** You are welcome to use AI coding assistants (Cursor, Claude Code, Copilot, etc.) just as you would in daily production work. Please complete `AI_WORKFLOW.md` briefly noting how you used AI and what you manually architected or corrected. Be prepared to modify and defend every line of your code live during our 45-minute review call. "The model wrote it that way" is not an answer we can work with.
 
 ---
 
@@ -106,3 +109,33 @@ When our Python backend emits a `langgraph_interrupt` event (Scenario: **`approv
 ### Task 3: Asynchronous PR Review (`reviews/PR_104_AgentSummaryCard.md`) (~25 mins)
 
 As our first Senior Frontend Engineer, you will review frontend code written by junior/mid-level engineers and backend colleagues. Open `reviews/PR_104_AgentSummaryCard.md`, which contains a 75-line component diff submitted by a teammate, and write **5 to 7 inline review comments** prioritized by severity (security, state bugs, UX honesty, accessibility, and TypeScript safety).
+
+---
+
+## How we score this
+
+| Weight | Criterion |
+| ------ | --------- |
+| 35% | **State and stream lifecycle correctness (Task 1)**: do the two failing tests pass for the right reasons, can invalid overlapping run states be represented, does reconnect avoid duplicated tokens |
+| 20% | **Honest UX under failure**: chaos and malformed scenarios, partial output kept, the user told the truth about the state |
+| 20% | **Component API boundaries and validation (Task 2)**: registry design, schema validation, error boundary, fallback |
+| 20% | **Judgment and communication**: `ARCHITECTURE.md`, PR review prioritization, `AI_WORKFLOW.md` honesty |
+| 5% | **Documentation**: can we run it cold |
+
+A smaller, correct, well-explained solution scores above a larger one with loose ends. Submissions are scored by two reviewers.
+
+---
+
+## IP, data, and privacy
+
+* **You retain all intellectual property in your submission.** We use it solely to evaluate your application. We will not use it in production or derive anything from it.
+* **What we collect:** your submitted code, your CV, and correspondence relating to this application. Our lawful basis is taking steps prior to entering a contract with you.
+* **Retention:** we delete your submission and application data within 6 months of a hiring decision, unless you separately and explicitly consent to us keeping it on file for future roles. That consent is optional and declining it does not affect this application.
+* **Your rights:** you can request access to, correction of, or deletion of your data at any time by emailing Edouard, and we will act within 30 days.
+* The hiring company is based in Munich, Germany and is the data controller. CreativeNest acts as our processor for sourcing.
+
+---
+
+## What happens next
+
+If we move forward, we will schedule a **45-minute remote review call** where you walk us through the solution and we dig into the decisions. That conversation carries more weight than the code itself. Expect us to push on your state model, on how you handled the chaos and malformed scenarios, and on your PR review.
