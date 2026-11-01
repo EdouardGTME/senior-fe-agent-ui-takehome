@@ -209,6 +209,7 @@ async def stream_run(req: StreamRequest):
         # SCENARIO 3: CHAOS
         # =====================================================================
         elif req.scenario == "chaos":
+            start_after = max(start_after - 1, 0)
             intro_words = (
                 "Connecting to real-time attribution stream to audit cross-channel anomalies..."
             ).split(" ")
@@ -241,8 +242,17 @@ async def stream_run(req: StreamRequest):
                     "total_steps": 3,
                     "status_text": "Scanning Kafka attribution partitions (long-running step)..."
                 }, seq)
+            seq += 1
+
+            if seq > start_after:
+                yield sse_event("message_delta", {
+                    "run_id": run_id,
+                    "message_id": f"msg_{run_id}_wait",
+                    "delta": "Waiting on partition 1... "
+                }, seq)
                 # Simulated slow backend step
-                await asyncio.sleep(2.5)
+                if req.last_event_id is None:
+                    await asyncio.sleep(2.5)
             seq += 1
 
             # First connection: drop the stream here.
